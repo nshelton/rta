@@ -1,0 +1,86 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Particle's data
+struct Particle
+{
+	float3 position;
+	float3 color;
+};
+
+// Particle's data, shared with the shader
+RWStructuredBuffer<Particle> particleBuffer;
+
+// Variables set from the CPU
+float Time;
+
+float3 camPos;
+float4 camQRot;
+float scale;
+float FOV;
+float pointDim;
+float _fogAmount;
+
+float _jitter;
+float _Threshold;
+float _StepRatio;
+float4 _RenderParam;
+float4 _RaymarchParam;
+float4 _FractalA;
+float4 _FractalB;
+float4 _FractalC;
+
+float thresh(float z)
+{
+     return exp(-_RaymarchParam.z * 10.0 * 2.0) * exp(_StepRatio * z) / scale;
+}
+
+#include "utility.cginc"
+#include "distanceFunctions.cginc"
+#include "rendering.cginc" 
+
+float4 raymarch(float3 id, out float iter)
+{
+	float3 pos = camPos ;
+	float3 p = (float3) 0;
+	float d = 0;
+	float3 dir = normalize(id);
+
+    dir.x += _jitter *  rand(dir.yz * Time);
+    dir.y += _jitter *  rand(dir.xz * Time);
+
+	dir = rotate_vector(dir, camQRot);
+
+	// p = camPos + dir * 1.0 ;
+	// iter = 1.0;
+	// return float4(p, 0.0) ;
+    // [unroll(50)] 
+	for ( int i = 0; i < 50; i ++)
+	{
+		p = camPos + dir * d ;
+        iter = (float)i / 50.0;
+		float2 dist = DE(p);
+
+		if(dist.x < thresh(length(pos - camPos)))
+			return float4(p, dist.y) ;  
+
+		d += dist.x;
+
+	}
+	return float4(2000,2000,2000, 0);
+}
+
+[numthreads(512, 1, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	float3 pos = float3(id.x % pointDim, id.x / pointDim, pointDim * FOV) / pointDim;
+    float2 uv = pos.xy;
+	pos.xy -= 0.5;
+	pos.xy -= pos.xy * (0.7 -  length(pos.xy));
+
+    float iter;
+	float4 result = raymarch(pos, iter);
+
+	particleBuffer[id.x].color = light(result.xyz, uv, result.w, iter);
+	particleBuffer[id.x].position = result.xyz;
+}
