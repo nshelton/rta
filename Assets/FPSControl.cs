@@ -27,13 +27,13 @@ public class FPSControl : MonoBehaviour
     void Update()
     {
  
-        if (Input.GetMouseButton(1))
-        {
-            Vector3 p = Input.mousePosition;
-            Vector3 dir = new Vector3(-p.y + Screen.height / 2, p.x - Screen.width / 2, 0) / Screen.height;
+        // if (Input.GetMouseButton(1))
+        // {
+        //     Vector3 p = Input.mousePosition;
+        //     Vector3 dir = new Vector3(-p.y + Screen.height / 2, p.x - Screen.width / 2, 0) / Screen.height;
 
-            transform.Rotate(dir * m_rotationSensitivity);
-        }
+        //     transform.Rotate(dir * m_rotationSensitivity);
+        // }
 
         if (Input.GetKey(KeyCode.Q))
         {

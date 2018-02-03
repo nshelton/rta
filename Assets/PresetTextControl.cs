@@ -5,6 +5,7 @@ using UnityEngine;
 public class PresetTextControl : MonoBehaviour {
 
 	private TextMesh  m_textMesh;
+	private UnityEngine.UI.Text m_text;
 
 
 	[SerializeField]
@@ -12,10 +13,22 @@ public class PresetTextControl : MonoBehaviour {
 
 	void Start () {
 		m_textMesh = GetComponent<TextMesh>();
+		m_text = GetComponent<UnityEngine.UI.Text>();
 	}
 
 	void Update () {
-		m_textMesh.text = string.Format("{0} / {1}", m_controller.currentPreset, m_controller.m_presets.Count);
+
+		var str = string.Format("{0} / {1}", m_controller.currentPreset, m_controller.m_presets.Count);
+		
+		if ( m_text != null)
+		{
+			m_text.text = str;
+		}
+
+		if ( m_textMesh != null)
+		{
+			m_textMesh.text = str;
+		}
 	}
 
 

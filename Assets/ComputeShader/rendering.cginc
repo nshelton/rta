@@ -7,21 +7,7 @@ float3 calcNormal(float3 pos) {
 			DE(pos + eps.yyx).x - DE(pos - eps.yyx).x);
 	return normalize(nor);
 }
-
-float calcAO(float3 pos, float3 nor) {
-	float occ = 0.0;
-	float sca = 1.0;
-
-	for (int i = 0; i < 5; i++) {
-		float hr = 0.01 / scale + 0.12 * float(i) / 4.0;
-		float3 aopos = nor * hr + pos;
-		float dd = DE(aopos).x;
-
-		occ += -(dd - hr) * sca;
-		sca *= 0.95;
-	}
-	return clamp(1.0 - 3.0 * occ, 0.0, 1.0);
-}
+ 
 
 //http://iquilezles.org/www/articles/fog/fog.htm
 float3 applyFog( in float3  rgb,      // original color of the pixel
@@ -33,7 +19,6 @@ float3 applyFog( in float3  rgb,      // original color of the pixel
 
     return lerp(rgb, fogColor, fogAmount );
 }
-
 
 //Random number [0:1] without sine
 #define HASHSCALE1 .1031
@@ -58,63 +43,46 @@ float3 randomHemisphereDir(float3 dir, float i)
 	return v * sign(dot(v, dir));
 }
 
-
-
-
-float ambientOcclusion( in float3 p, in float3 n, in float maxDist, in float falloff )
+float ambientOcclusion(in float3 p, in float3 n)
 {
-	const int nbIte = 32;
+
+    float maxDist = 0.5; // _RenderParam.y;
+    float falloff = 2.0; //_RenderParam.z;
+	const int nbIte = 1;
     const float nbIteInv = 1.0 / float(nbIte);
     const float rad = 1.0 - 1.0 * nbIteInv; //Hemispherical factor (self occlusion correction)
     
 	float ao = 0.0;
     
     for( int i=0; i<nbIte; i++ ) {
+
         float l = hash(float(i)) * maxDist;
-        float3 rd = normalize(n+randomHemisphereDir(n, l ) * rad) * l; 
+        float3 rd = normalize(n + randomHemisphereDir(n, l ) * rad) * l; 
         ao += (1.0 - max(DE( p + rd ).x, 0.0)) / maxDist * falloff;
     }
 	
-    return clamp( 1.0 - ao * nbIteInv, 0., 1.);
+    return clamp(ao * nbIteInv, 0., 1.);
 }
-
 
 float softshadow( float3 ro, float3 rd)
 {
     float res = 1.0;
-    float mint = 0.001 / scale; 
+    float mint = 0.001;
     float k = 3.0;
     float t = mint;
 
     for(int i = 0; i < 5; i ++ )
     {
         float h = DE(ro + rd*t).x;
+
         if( h < thresh(length(ro - camPos)) )
             return 0.0;
+            
         res = min( res, k*h/t );
         t += h/scale;
     }
 
     return res;
-}
-// ao
-float ao( float3 v, float3 n) {
-
-    float step = _RenderParam.x ;
-
-    float ao = 1.0;
-    float t = 0;
-    float3 pos ;
-
-    for ( int i = 0; i < 5; i ++)
-    {
-        float weight = _RenderParam.y / pow(1.5, i);
-        float dd = DE(t * n + v).x;
-        ao -= weight * (t - dd / scale);
-
-        t += step;
-    }
-	return sqrt(ao);
 }
 
 float3 magma_quintic( float x )
@@ -141,30 +109,28 @@ float3 plasma_quintic( float x )
 
 float3 light(float3 p, float2 uv, float trap, float iter)
 {
-    if (_RenderParam.w>(6.0) )
-    {
-        return plasma_quintic(iter);
-    }
 	float3 nor = calcNormal(p);
-	float phong = abs(dot(-nor, normalize(p - camPos)));
+	float light =  0.5 + 0.5 * abs(dot(-nor, normalize(p - camPos)));
 
+    float ao = ambientOcclusion(p, nor);
+    float steps = (float3)(1.0 - iter);
+
+    
     float3 ray = normalize(p - camPos);
     float depth = length(p - camPos);
 
-    // // float3 color = (float3) ambientOcclusion(p, nor, 10.0/scale , 1.);
+    float3 tangent = cross(nor, cross(nor, float3(0,0,1)));
+    float3 bitangent = cross(nor, tangent);
 
-    // // float3 color = (float3) iter;
-    // // float3 color = (float3) ao(p, nor) * phong;
-    
-    // float3 tangent = cross(nor, cross(nor, float3(0,0,1)));
-    // float3 bitangent = cross(nor, tangent);
+    float shadow = 
+            softshadow(p, normalize(nor + tangent * 0.1)) +
+            softshadow(p, normalize(nor - tangent * 0.1)) +
+            softshadow(p, normalize(nor + bitangent * 0.1)) +
+            softshadow(p, normalize(nor - bitangent * 0.1));
 
+    light = steps * light;
 
-    // float shadow = 
-    //         softshadow(p, normalize(nor + tangent * _RenderParam.z)) +
-    //         softshadow(p, normalize(nor - tangent * _RenderParam.z)) +
-    //         softshadow(p, normalize(nor + bitangent * _RenderParam.z)) +
-    //         softshadow(p, normalize(nor - bitangent * _RenderParam.z));
+// Color
 
     float t = pow(abs(trap), _RenderParam.y)  + _RenderParam.z;
 
@@ -174,7 +140,8 @@ float3 light(float3 p, float2 uv, float trap, float iter)
     if( _RenderParam.w>(3.0) ) color = pal( t, float3(0.5,0.5,0.5),float3(0.5,0.5,0.5),float3(1.0,1.0,0.5),float3(0.8,0.90,0.30) );
     if( _RenderParam.w>(4.0) ) color = pal( t, float3(0.5,0.5,0.5),float3(0.5,0.5,0.5),float3(1.0,0.7,0.4),float3(0.0,0.15,0.20) );
     if( _RenderParam.w>(5.0) ) color = pal( t, float3(0.5,0.5,0.5),float3(0.5,0.5,0.5),float3(2.0,1.0,0.0),float3(0.5,0.20,0.25) );
-     color *= sqrt(1.0 - iter) *_RenderParam.x * (0.5 + 0.5 * phong) ;
+    
+    color *= _RenderParam.x *  light;
     
     // color = (float3)shadow / 4.0;
         //(float3) softShadow(p, nor);

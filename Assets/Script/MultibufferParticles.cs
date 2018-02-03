@@ -146,7 +146,7 @@ public class MultibufferParticles : MonoBehaviour
 
 			int wrap =  (i > activeBuffer) ? numActiveBuffers : 0;
 			int age = wrap + activeBuffer - i ;
-			float sizeFalloff = 1f - ((float)age / (float)numActiveBuffers);
+			float sizeFalloff = 1f; //- ((float)age / (float)numActiveBuffers);
 
 			material.SetFloat("_Size", mPointSize * sizeFalloff);
 			Graphics.DrawProcedural(MeshTopology.Points, 1, particleCount);

@@ -72,7 +72,10 @@ Shader "Custom/Billboard"
 					float4 v[4];
 
 					float halfS = 0.5f * _Size * 0.001  * length(p[0].pos - _WorldSpaceCameraPos);
+
 					float3 delta = float3(halfS, -halfS, 0);
+
+					// float2 aspect = float2(_ScreenParams.x/_ScreenParams.y, 1.0);
 
 					p[0].pos = UnityObjectToClipPos(p[0]. pos);
 
