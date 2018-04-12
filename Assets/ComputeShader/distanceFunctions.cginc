@@ -21,7 +21,7 @@ float2 pseudo_knightyan(float3 p)
 
 float2 tglad_variant(float3 z0)
 {
-    z0 = modc(z0, 2.0);
+    // z0 = modc(z0, 2.0);
     float mr=0.25, mxr=1.0;
 
     float4 scale = (float)(-2) , p0=_FractalA;
@@ -67,8 +67,8 @@ float2 tglad(float3 z0)
 // ( http://www.pouet.net/prod.php?which=59086 )
 float2 hartverdrahtet(float3 f)
 {
-    float3 cs= _FractalA.xyz;
-    float fs=_FractalA.w;
+    float3 cs = _FractalA.xyz;
+    float  fs  = _FractalA.w;
     float3 fc=0;
     float fu=10.;
     float fd=.763;
@@ -186,7 +186,7 @@ float2 DE(float3 d)
 	float2 p =  hartverdrahtetBasic(d);
 
     if ( _RaymarchParam.w > 1)
-        p = tglad_variant(d);
+     p = tglad_variant(d);
 
     if ( _RaymarchParam.w > 2)
         p = pseudo_knightyan(d);  

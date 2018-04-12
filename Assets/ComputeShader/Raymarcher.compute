@@ -43,7 +43,7 @@ float4 raymarch(float3 id, out float iter)
 {
 	float3 pos = camPos ;
 	float3 p = (float3) 0;
-	float d = 0;
+	float d = 0.0;
 	float3 dir = normalize(id);
 
     dir.x += _jitter *  rand(dir.yz * Time);
