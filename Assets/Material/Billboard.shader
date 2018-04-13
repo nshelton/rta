@@ -46,11 +46,11 @@ Shader "Custom/Billboard"
 				float4x4 modelToWorld;
 				StructuredBuffer<Particle> particleBuffer;
 
-float nrand(float2 uv, float salt)
-{
-    uv += float2(salt, 1);
-    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
-}
+				float nrand(float2 uv, float salt)
+				{
+					uv += float2(salt, 1);
+					return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
+				}
 
 				// Vertex Shader ------------------------------------------------
    				pointData VS_Main(uint vertex_id : SV_VertexID, uint instance_id : SV_InstanceID)
@@ -59,12 +59,12 @@ float nrand(float2 uv, float salt)
 					float4 particlePos = float4(particleBuffer[instance_id].position, 1.0f);
 					output.pos =  mul(modelToWorld, particlePos);
  					output.color = float4(particleBuffer[instance_id].color, 1.0);
-
+#if DISTORION_FIELD
 					float scale = sin(_Time.x / 3.0  ) * 2.0 + 4.0;
 					float3 noisePos = scale * output.pos.xyz + float3(0, 0, _Time.x);
 					float noiseAmp = 0.01 * sin(_Time.x); // *pow(sin(_Time.y + output.pos.y * 2.0) , 4.0);
 					output.pos.xyz += snoise_grad(noisePos) * noiseAmp;
- 
+#endif 
 					return output;
 				}
 

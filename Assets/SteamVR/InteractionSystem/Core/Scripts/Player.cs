@@ -386,7 +386,7 @@ namespace Valve.VR.InteractionSystem
 		private void ActivateRig( GameObject rig )
 		{
 			rigSteamVR.SetActive( rig == rigSteamVR );
-			rig2DFallback.SetActive( rig == rig2DFallback );
+			// rig2DFallback.SetActive( rig == rig2DFallback );
 
 			if ( audioListener )
 			{

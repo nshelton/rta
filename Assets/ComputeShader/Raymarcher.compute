@@ -41,10 +41,14 @@ float thresh(float z)
 
 float4 raymarch(float3 id, out float iter)
 {
-	float3 pos = camPos ;
+	float3 pos = camPos;
+
 	float3 p = (float3) 0;
 	float d = 0.0;
 	float3 dir = normalize(id);
+
+	// move the cam point on a line between the eyes to avoid shadows 
+	pos.x += 0.06 * 2.0 * rand(dir.xy);
 
     dir.x += _jitter *  rand(dir.yz * Time);
     dir.y += _jitter *  rand(dir.xz * Time);
