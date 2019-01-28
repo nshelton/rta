@@ -112,12 +112,9 @@ float3 light(float3 p, float2 uv, float trap, float iter)
 	float3 nor = calcNormal(p);
 	float light =  0.5 + 0.5 * abs(dot(-nor, normalize(p - camPos)));
 
-    float ao = ambientOcclusion(p, nor);
     float steps = (float3)(1.0 - iter);
+   /* 
 
-    
-    float3 ray = normalize(p - camPos);
-    float depth = length(p - camPos);
 
     float3 tangent = cross(nor, cross(nor, float3(0,0,1)));
     float3 bitangent = cross(nor, tangent);
@@ -127,9 +124,7 @@ float3 light(float3 p, float2 uv, float trap, float iter)
             softshadow(p, normalize(nor - tangent * 0.1)) +
             softshadow(p, normalize(nor + bitangent * 0.1)) +
             softshadow(p, normalize(nor - bitangent * 0.1));
-
-    light = steps * light;
-
+*/
 // Color
 
     float t = pow(abs(trap), _RenderParam.y)  + _RenderParam.z;
@@ -140,13 +135,19 @@ float3 light(float3 p, float2 uv, float trap, float iter)
     if( _RenderParam.w>(3.0) ) color = pal( t, float3(0.5,0.5,0.5),float3(0.5,0.5,0.5),float3(1.0,1.0,0.5),float3(0.8,0.90,0.30) );
     if( _RenderParam.w>(4.0) ) color = pal( t, float3(0.5,0.5,0.5),float3(0.5,0.5,0.5),float3(1.0,0.7,0.4),float3(0.0,0.15,0.20) );
     if( _RenderParam.w>(5.0) ) color = pal( t, float3(0.5,0.5,0.5),float3(0.5,0.5,0.5),float3(2.0,1.0,0.0),float3(0.5,0.20,0.25) );
+    if( _RenderParam.w>(5.0) ) color = pal( t, float3(0.5,0.5,0.5),float3(0.5,0.5,0.5),float3(2.0,1.0,0.0),float3(0.5,0.20,0.25) );
+    if (_RenderParam.w > (6.0))
+        color = (float3) 1.0;
     
-    color *= _RenderParam.x *  light;
+    color *= _RenderParam.x *  light * steps;
     
     // color = (float3)shadow / 4.0;
         //(float3) softShadow(p, nor);
-
-    color = applyFog(color, depth*scale, ray);
+    /*
+    float3 ray = normalize(p - camPos);
+    float depth = length(p - camPos);
+    color = applyFog(color, depth * scale, ray);
+    */
 
 	return (float3) color;
 }

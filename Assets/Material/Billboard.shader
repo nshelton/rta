@@ -5,6 +5,7 @@ Shader "Custom/Billboard"
 	Properties 
 	{
 		[HDR] _Color ("color", Color) = (1,1,1,1)
+		_MainTex ("noise", 2D) = "white" {}
 		_Size ("Size", float) = 0.5
 	}
 
@@ -42,6 +43,7 @@ Shader "Custom/Billboard"
 
 				float _Size;
 				sampler2D _SpriteTex;
+				sampler2D _MainTex;
 				float4 _Color;
 				float4x4 modelToWorld;
 				StructuredBuffer<Particle> particleBuffer;
@@ -62,8 +64,12 @@ Shader "Custom/Billboard"
 #if DISTORION_FIELD
 					float scale = sin(_Time.x / 3.0  ) * 2.0 + 4.0;
 					float3 noisePos = scale * output.pos.xyz + float3(0, 0, _Time.x);
-					float noiseAmp = 0.01 * sin(_Time.x); // *pow(sin(_Time.y + output.pos.y * 2.0) , 4.0);
-					output.pos.xyz += snoise_grad(noisePos) * noiseAmp;
+					float noiseAmp = 0.05 * sin(_Time.x); // *pow(sin(_Time.y + output.pos.y * 2.0) , 4.0);
+
+					float noise = tex2Dlod(_MainTex, float4(0.05 * output.pos.xy + _Time.x + 10.0 * sin(_Time.x * 0.1), 0,0)).r;
+					output.pos.z -= noise;
+					//output.pos.xyz +=   noiseAmp;
+				//	output.pos.z += 0.1 * frac(sin(output.pos.x * 10.0 + _Time.y)) > 0.9 ? 0.1: snoise_grad(output.pos.y+ sin(_Time.y)).z* 0.1;
 #endif 
 					return output;
 				}
@@ -123,7 +129,7 @@ Shader "Custom/Billboard"
 
 				clip (0.5 - length(i.tex0.xy - 0.5));
 
-				return i.color;
+				return i.color + 0.1;
 
 			}
 

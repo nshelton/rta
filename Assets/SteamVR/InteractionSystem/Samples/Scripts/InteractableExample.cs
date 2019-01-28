@@ -88,6 +88,11 @@ namespace Valve.VR.InteractionSystem
 		}
 
 
+        public void OculusHandHoverUpdate(bool triggerPressed, Transform oculusController)
+        {
+
+        }
+
 		//-------------------------------------------------
 		// Called when this GameObject becomes attached to the hand
 		//-------------------------------------------------

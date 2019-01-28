@@ -62,12 +62,35 @@ namespace Valve.VR.InteractionSystem
 			}
 		}
 
+        //-------------------------------------------------
+        private Transform m_grabbingHand;
+
+        public void OculusHandHoverUpdate( Transform hand, bool justPressed, bool justReleased, bool isPressed)
+        {
+
+            if (justPressed)
+            {
+                m_grabbingHand = hand;
+                initialMappingOffset = linearMapping.NormalizedValue - CalculateLinearMapping(hand.transform);
+                sampleCount = 0;
+                mappingChangeRate = 0.0f;
+            }
+
+            if (justReleased)
+            {
+                CalculateMappingChangeRate();
+                m_grabbingHand = null;
+            }
+
+            if (isPressed)
+            {
+                UpdateLinearMapping(hand.transform);
+            }
+        }
 
 
-
-		//-------------------------------------------------
-		private void HandHoverUpdate( Hand hand )
-		{
+        private void HandHoverUpdate( Hand hand)
+        {
 			if ( hand.GetStandardInteractionButtonDown() )
 			{
 				hand.HoverLock( GetComponent<Interactable>() );
@@ -107,7 +130,6 @@ namespace Valve.VR.InteractionSystem
 			}
 		}
 
-
 		//-------------------------------------------------
 		private void UpdateLinearMapping( Transform tr )
 		{
@@ -123,7 +145,6 @@ namespace Valve.VR.InteractionSystem
 			}
 		}
 
-
 		//-------------------------------------------------
 		private float CalculateLinearMapping( Transform tr )
 		{
@@ -135,7 +156,6 @@ namespace Valve.VR.InteractionSystem
 
 			return Vector3.Dot( displacement, direction ) / length;
 		}
-
 
 		//-------------------------------------------------
 		void Update()
@@ -151,6 +171,11 @@ namespace Valve.VR.InteractionSystem
 					transform.position = Vector3.Lerp( startPosition.position, endPosition.position, linearMapping.NormalizedValue );
 				}
 			}
+
+            if ( m_grabbingHand != null)
+            {
+                OculusHandHoverUpdate(m_grabbingHand, false, false, true);
+            }
 		}
 	}
 }

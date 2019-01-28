@@ -33,6 +33,7 @@ float4 _FractalC;
 float thresh(float z)
 {
      return exp(-_RaymarchParam.z * 10.0 * 2.0) * exp(_StepRatio * z) / scale;
+     return exp(-_RaymarchParam.z * 10.0 *(1.0 + z));
 }
 
 #include "utility.cginc"
@@ -59,10 +60,10 @@ float4 raymarch(float3 id, out float iter)
 	// iter = 1.0;
 	// return float4(p, 0.0) ;
     // [unroll(50)] 
-	for ( int i = 0; i < 100; i ++)
+	for ( int i = 0; i < 50; i ++)
 	{
 		p = camPos + dir * d ;
-        iter = (float)i / 100.0;
+        iter = (float)i / 50.0;
 		float2 dist = DE(p);
 
 		if(dist.x < thresh(length(pos - camPos)))

@@ -10,6 +10,7 @@ public class ButtonToggle : MonoBehaviour {
 
 	[SerializeField]
 	private Valve.VR.InteractionSystem.EventButton m_control;
+
 	[SerializeField]
 	private Color m_activationColor = Color.yellow;
 

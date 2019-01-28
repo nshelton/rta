@@ -22,16 +22,16 @@ namespace Valve.VR.InteractionSystem
 		[SerializeField]
 		private GameObject indicator;
 
-		[ColorUsageAttribute(true,true,0f,8f,0.125f,3f)] 
+		[ColorUsageAttribute(false, true)] 
 		[SerializeField]
 		public Color m_color;
 
-		[ColorUsageAttribute(true,true,0f,8f,0.125f,3f)] 
-		[SerializeField]
+		[ColorUsageAttribute(false, true)] 
+        [SerializeField]
 		public Color m_hoverColor;
 
-		[ColorUsageAttribute(true,true,0f,8f,0.125f,3f)] 
-		[SerializeField]
+		[ColorUsageAttribute(false, true)] 
+        [SerializeField]
 		public Color m_gripColor;
 
 		private Material m_material;

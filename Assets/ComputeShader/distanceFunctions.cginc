@@ -181,12 +181,67 @@ float2 polycrust(float3 p){
 }
 
 
+void sphereFold(inout float3 z, inout float dz) {
+
+	float fixedRadius2 = _FractalA.x;
+	float minRadius2  = _FractalA.y;
+
+	float r2 = dot(z,z);
+	if (r2 < minRadius2) { 
+		// linear inner scaling
+		float temp = (fixedRadius2/minRadius2);
+		z *= temp;
+		dz*= temp;
+	} else if (r2 < fixedRadius2) { 
+		// this is the actual sphere inversion
+		float temp =(fixedRadius2/r2);
+		z *= temp;
+		dz*= temp;
+	}
+}
+ 
+void boxFold(inout float3 z, inout float dz) {
+	z = clamp(z, - _FractalA.z,  _FractalA.z) * 2.0 - z;
+}
+
+
+//----------------------------------------------------------------------------------------
+float2 MBOX(float3 z)
+{
+	float3 offset = z;
+	float dr = 1.0;
+
+	float Scale = _FractalA.w;
+	float iter = 0.0;
+
+	float orbit = 0;
+	float3 z_prime = z;
+
+	for (int n = 0; n < 7; n++) {
+		boxFold(z,dr);       // Reflect
+		sphereFold(z,dr);    // Sphere Inversion
+ 		
+        z=Scale*z + offset;  // Scale & Translate
+        dr = dr*abs(Scale)+1.0;
+        iter++;
+		orbit += length(z_prime - z);
+		z_prime = z;
+
+        if (abs(dr) > 1000000.)
+        	break;
+	}
+	float r = length(z);
+
+	return float2(r/abs(dr), orbit);
+}
+
+
 float2 DE(float3 d)
 {
 	float2 p =  hartverdrahtetBasic(d);
 
     if ( _RaymarchParam.w > 1)
-     p = tglad_variant(d);
+     p = MBOX(d);
 
     if ( _RaymarchParam.w > 2)
         p = pseudo_knightyan(d);  

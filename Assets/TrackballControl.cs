@@ -10,14 +10,19 @@ public class TrackballControl : MonoBehaviour {
 	[SerializeField]
     public SteamVR_TrackedController m_rightHand;
 
-	[SerializeField]
+    [SerializeField]
+    public OVRTouchSample.TouchController m_leftOculusController;
+
+    [SerializeField]
+    public OVRTouchSample.TouchController m_rightOculusController;
+
+    [SerializeField]
     public GameObject m_cameraObject;
 
 	public GameObject m_leftHandObject;
 
 	[SerializeField]
     public GameObject m_rightHandObject;
-
 
 	[SerializeField]
 	public GameObject m_targetObject;
@@ -37,7 +42,10 @@ public class TrackballControl : MonoBehaviour {
 	public bool m_isGripping = false;
 
 	public Vector3 m_startVector;
-	
+
+    [SerializeField]
+    public InputMode m_inputMode;
+
 
 	private void UpdateTrackball()
 	{
@@ -70,6 +78,7 @@ public class TrackballControl : MonoBehaviour {
 		m_targetObject.transform.SetParent(null, true);
 	}
 
+    // Vive callbacks
 	void GrippedL(object sender, ClickedEventArgs e)
 	{
 		if (m_rightHand.gripped) StartGrip();
@@ -85,17 +94,57 @@ public class TrackballControl : MonoBehaviour {
 		if( m_isGripping) EndGrip();
 	}
 
-	void Start () {
-		m_leftHand.Gripped  += GrippedL;
-		m_rightHand.Gripped += GrippedR;
+    /// Oculus Callbacks
+    void GrippedLOculus()
+    {
+        if (m_rightOculusController.Gripped) StartGrip();
 
-		m_leftHand.Ungripped += Ungripped;
-		m_rightHand.Ungripped += Ungripped;
- 
+    }
+    void GrippedROculus()
+    {
+        if (m_leftOculusController.Gripped) StartGrip();
+    }
 
+    void UngrippedOculus()
+    {
+        if (m_isGripping) EndGrip();
+    }
+
+    void Start () {
+
+        if (m_inputMode == InputMode.Vive)
+        {
+            m_leftHand.Gripped += GrippedL;
+            m_rightHand.Gripped += GrippedR;
+
+            m_leftHand.Ungripped += Ungripped;
+            m_rightHand.Ungripped += Ungripped;
+        }
+
+        if (m_inputMode == InputMode.Oculus)
+        {
+            m_leftOculusController.OnGrip += GrippedLOculus;
+            m_rightOculusController.OnGrip += GrippedROculus;
+
+            m_leftOculusController.OnUngrip += UngrippedOculus;
+            m_rightOculusController.OnUngrip += UngrippedOculus;
+        }
 	}
-	
-	void VelocityFromPad(SteamVR_TrackedController hand)
+
+    void VelocityFromPad(OVRTouchSample.TouchController hand)
+    {
+        if (hand.Joystick.SqrMagnitude() > 0.001f)
+        {
+            Vector3 dir = Mathf.Pow(hand.Joystick.x, 3f) * hand.transform.right
+                + Mathf.Pow(hand.Joystick.y, 3f) * hand.transform.forward;
+
+            m_targetObject.transform.Translate(
+                -m_targetObject.transform.InverseTransformDirection(dir) * m_flySpeed);
+        }
+    }
+
+
+    void VelocityFromPad(SteamVR_TrackedController hand)
 	{
 			if(hand.padTouched)
 			{
@@ -121,19 +170,45 @@ public class TrackballControl : MonoBehaviour {
 	void Update () {
 		if ( m_isGripping )
 		{
-			if (!m_leftHand.gripped || !m_rightHand.gripped)
-			{
-				EndGrip();
-				return;
-			}
+			if (m_inputMode == InputMode.Vive)
+            {
+                if (!m_leftHand.gripped || !m_rightHand.gripped)
+                {
+                    EndGrip();
+                    return;
+                }
+            }
+            else if (m_inputMode == InputMode.Oculus)
+            {
+                if (!m_leftOculusController.Gripped || !m_rightOculusController.Gripped)
+                {
+                    EndGrip();
+                    return;
+                }
+            }
 
 			UpdateTrackball();
 		}
 		else
 		{
-			VelocityFromPad(m_rightHand);
-			VelocityFromPad(m_leftHand);
-			//GazeTrigger(m_rightHand, m_leftHand);
-		}
+			if (m_inputMode == InputMode.Vive)
+            {
+                VelocityFromPad(m_rightHand);
+                VelocityFromPad(m_leftHand);
+            }
+            if (m_inputMode == InputMode.Oculus)
+            {
+                VelocityFromPad(m_rightOculusController);
+                VelocityFromPad(m_leftOculusController);
+            }
+
+        }
 	}
+
+
+    public enum InputMode
+    {
+        Oculus,
+        Vive
+    }
 }

@@ -5,7 +5,6 @@
 //=============================================================================
 
 using UnityEngine;
-using System.Collections;
 using UnityEngine.Events;
 
 namespace Valve.VR.InteractionSystem
@@ -21,15 +20,15 @@ namespace Valve.VR.InteractionSystem
 		[SerializeField]
 		private GameObject indicator;
 
-		[ColorUsageAttribute(true,true,0f,8f,0.125f,3f)] 
+		[ColorUsageAttribute(true,true)] 
 		[SerializeField]
 		public Color m_color;
 
-		[ColorUsageAttribute(true,true,0f,8f,0.125f,3f)] 
+		[ColorUsageAttribute(true,true)] 
 		[SerializeField]
 		public Color m_hoverColor;
 
-		[ColorUsageAttribute(true,true,0f,8f,0.125f,3f)] 
+		[ColorUsageAttribute(true,true)] 
 		[SerializeField]
 		public Color m_clickColor;
 
@@ -45,28 +44,32 @@ namespace Valve.VR.InteractionSystem
 		}
 
 
-		//-------------------------------------------------
-		// Called when a Hand starts hovering over this object
-		//-------------------------------------------------
-		private void OnHandHoverBegin( Hand hand )
+        //-------------------------------------------------
+        // Called when a Hand starts hovering over this object
+        //-------------------------------------------------
+
+        public bool IsHovering = false;
+		public void OnHandHoverBegin( Hand hand )
 		{
-			m_material.SetColor("_EmissionColor", m_hoverColor);
+            IsHovering = true;
+            m_material.SetColor("_EmissionColor", m_hoverColor);
 		}
 
 
-		//-------------------------------------------------
-		// Called when a Hand stops hovering over this object
-		//-------------------------------------------------
-		private void OnHandHoverEnd( Hand hand )
+        //-------------------------------------------------
+        // Called when a Hand stops hovering over this object
+        //-------------------------------------------------
+        public void OnHandHoverEnd( Hand hand )
 		{
-			m_material.SetColor("_EmissionColor", m_color);
+            IsHovering = false;
+            m_material.SetColor("_EmissionColor", m_color);
             m_canTriggerEvents = true;
 		}
 
-		//-------------------------------------------------
-		// Called every Update() while a Hand is hovering over this object
-		//-------------------------------------------------
-		private void HandHoverUpdate( Hand hand )
+        //-------------------------------------------------
+        // Called every Update() while a Hand is hovering over this object
+        //-------------------------------------------------
+        public void HandHoverUpdate( Hand hand )
 		{
 			if (hand.GetStandardInteractionButtonDown() || 
             ( ( hand.controller != null ) && hand.controller.GetPressDown( Valve.VR.EVRButtonId.k_EButton_Grip ) ) )
@@ -79,5 +82,21 @@ namespace Valve.VR.InteractionSystem
 				}
 			}
 		}
-	}
+
+        public void TriggerClick()
+        {
+            m_canTriggerEvents = false;
+            m_material.SetColor("_EmissionColor", m_clickColor);
+            onClick.Invoke();
+        }
+
+        private void OnCollisionExit(Collision collision)
+        {
+            if (collision.gameObject.name == "InteractionPoint")
+                OnHandHoverEnd(null);
+
+        }
+
+
+    }
 }

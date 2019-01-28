@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.EventSystems; // 1
 
 public class THREETrackballCamera : MonoBehaviour
 {
@@ -26,9 +25,6 @@ public class THREETrackballCamera : MonoBehaviour
 
     [SerializeField]
     private float m_flySensitivity = 0.3f;
-
-
-
 
     [SerializeField]
     private bool noRotate = false;
@@ -261,20 +257,20 @@ public class THREETrackballCamera : MonoBehaviour
 
     private void Update()
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 1; i < 3; i++)
         {
             if (Input.GetMouseButtonDown(i))
-                mousedown(i);
+                mousedown(i-1);
 
             if (Input.GetMouseButton(i))
-                mousemove(i);
+                mousemove(i-1);
 
             if (Input.GetMouseButtonUp(i))
-                mouseup(i);
-
-            if (Input.mouseScrollDelta.y != 0)
-                mousewheel();
+                mouseup(i-1);
         }
+
+        if (Input.mouseScrollDelta.y != 0)
+            mousewheel();
 
         _eye = transform.position - target.position;
 
@@ -314,6 +310,16 @@ public class THREETrackballCamera : MonoBehaviour
             target.position = target.position + transform.right * m_flySensitivity;
         }
 
+
+        if (Input.GetKey(KeyCode.Q))
+        {
+            target.position = target.position + transform.up * m_flySensitivity;
+        }
+
+        if (Input.GetKey(KeyCode.E))
+        {
+            target.position = target.position - transform.up * m_flySensitivity;
+        }
 
         transform.position = target.position + _eye;
         checkDistances();
@@ -401,6 +407,7 @@ public class THREETrackballCamera : MonoBehaviour
         _zoomStart.y -= Input.GetAxis("Mouse ScrollWheel") * 0.00025f;
         Debug.Log(_zoomStart.y);
     }
+
 
     //     private void touchstart( event )
     // {

@@ -40,8 +40,10 @@ public class MultibufferParticles : MonoBehaviour
 	[SerializeField]
 	private float _FOV = 1.0f;
 
+    [SerializeField]
+    private Camera m_camera;
 
-	[SerializeField]
+    [SerializeField]
 	private float _StepRatio = 1f;
 	public float StepRatio { get{return _StepRatio;} set{_StepRatio = value;} }
 
@@ -119,9 +121,9 @@ public class MultibufferParticles : MonoBehaviour
 		computeShader.SetFloat("stepRatio", _StepRatio);
 
 		computeShader.SetVector("camPos",
-		 transform.transform.InverseTransformPoint(Camera.main.transform.position));
+		 transform.transform.InverseTransformPoint(m_camera.transform.position));
 
-		Quaternion q =  Quaternion.Inverse(transform.rotation) * Camera.main.transform.rotation;
+		Quaternion q =  Quaternion.Inverse(transform.rotation) * m_camera.transform.rotation;
 
 		computeShader.SetVector("camQRot", new Vector4(q.x, q.y, q.z, q.w));
 		computeShader.SetFloat("scale", transform.localToWorldMatrix.GetScale().x );
