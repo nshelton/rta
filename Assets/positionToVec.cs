@@ -13,7 +13,6 @@ public class positionToVec : MonoBehaviour {
 	[SerializeField]
 	private GameObject parent;
 
-	
 	void Start () {
 		
 	}
@@ -22,9 +21,17 @@ public class positionToVec : MonoBehaviour {
 	void Update () {
 		// target.Vec3 =  parent.transform.worldToLocalMatrix * parent.transform.position;
 		target.Vec4 = parent.transform.InverseTransformPoint(transform.position);
+
 	}
 
 	public void Set(Vector4 pos) {
-		transform.position = parent.transform.TransformPoint(pos);
-	}
+        var result = parent.transform.TransformPoint(pos);
+
+        if ((result - transform.position).magnitude > 0.001f)
+        {
+            transform.position = result;
+            target.Vec4 = parent.transform.InverseTransformPoint(transform.position);
+            target.Update();
+        }
+    }
 }

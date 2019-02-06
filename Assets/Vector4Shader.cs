@@ -73,7 +73,11 @@ public class Vector4Shader : MonoBehaviour {
 	{
 		get{ return m_theValue;}
 		set
-		{ 
+		{
+
+            if ((m_theValue - value).magnitude < 0.001)
+                return;
+
 			m_theValue.x = value.x;
 			m_theValue.y = value.y;
 			m_theValue.z = value.z;
@@ -117,7 +121,7 @@ public class Vector4Shader : MonoBehaviour {
 
 
 	// Update is called once per frame
-	void Update () {
+	public void Update () {
 		
 		m_target.SetVector(m_shaderVarName, m_theValue);
 

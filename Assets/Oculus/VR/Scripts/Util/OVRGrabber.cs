@@ -199,6 +199,20 @@ public class OVRGrabber : MonoBehaviour
         }
     }
 
+    private Stack<EventButton> RemoveItem(Stack<EventButton> stack, EventButton toRemove)
+    {
+        var newStack = new Stack<EventButton>();
+
+        foreach (var item in m_clickables)
+        {
+            if (item != toRemove)
+            {
+                newStack.Push(item);
+            }
+        }
+        return newStack;
+    }
+
     void OnTriggerExit(Collider otherCollider)
     {
         EventButton clickable = otherCollider.GetComponent<EventButton>() ?? otherCollider.GetComponentInParent<EventButton>();
@@ -207,19 +221,10 @@ public class OVRGrabber : MonoBehaviour
         {
             if (m_clickables.Contains(clickable))
             {
-                var newClickables = new Stack<EventButton>();
 
-                foreach(var item in m_clickables)
-                {
-                    if (item != clickable)
-                    {
-                        newClickables.Push(item);
-                    }
-                }
+                var newClickables = RemoveItem(m_clickables, clickable);
 
-                m_clickables = newClickables;
-
-                if(clickable.IsHovering)
+                if (clickable.IsHovering)
                 {
                     clickable.OnHandHoverEnd(null);
                 }
@@ -276,7 +281,23 @@ public class OVRGrabber : MonoBehaviour
 
         if ( m_clickables.Count > 0 )
         {
-            m_clickables.Peek().TriggerClick();
+            var collisions = Physics.OverlapSphere(transform.position, 0.01f);
+            bool actuallyTouching = false;
+            var topButton = m_clickables.Peek();
+
+            foreach ( var collision in collisions)
+            {
+                if ( collision.gameObject.GetComponent<EventButton>() == topButton )
+                {
+                    actuallyTouching = true;
+                    break;
+                }
+            }
+
+            if (actuallyTouching)
+                m_clickables.Peek().TriggerClick();
+            else    
+                m_clickables.Pop();
         }
 
         float closestMagSq = float.MaxValue;
